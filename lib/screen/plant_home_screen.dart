@@ -4,8 +4,11 @@ import 'dart:io';
 import 'package:alarm/alarm.dart';
 
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:plant_sip/screen/alarm_edit_screen.dart';
 import 'package:plant_sip/widget/custom_button.dart';
+
+final ImagePicker picker = ImagePicker();
 
 class PlantHomeScreen extends StatefulWidget {
   const PlantHomeScreen({super.key});
@@ -43,26 +46,37 @@ class _PlantHomeScreenState extends State<PlantHomeScreen> {
       iconColor: Color(0xff862778),
     ),
   );
+  String imageUrl =
+      "https://imgs.search.brave.com/POSiM5I-qipFSRImCXHDR9qvDHa9wUtuvrQSIsrV8xg/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnJl/ZGQuaXQvbWJudG9r/c3hnaXRmMS5qcGVn";
+  File? cameraImage;
+  void getImageFromCamera() async {
+    // Pick an image.
+    final image = await picker.pickImage(source: ImageSource.camera);
+    if (image != null) {
+      setState(() {
+        cameraImage = File(image.path);
+      });
+
+      print("Imagei is picked ${image.path} $cameraImage ");
+    } else {
+      print("Image is Not Picked");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    String imageUrl =
-        "https://imgs.search.brave.com/POSiM5I-qipFSRImCXHDR9qvDHa9wUtuvrQSIsrV8xg/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnJl/ZGQuaXQvbWJudG9r/c3hnaXRmMS5qcGVn";
     return Scaffold(
       extendBodyBehindAppBar: true,
       body: Stack(
         children: [
-          
           Positioned.fill(
-            child: Image.network(
-              'https://lh3.googleusercontent.com/aida-public/AB6AXuBfPbLKOjuTO2TFmKVZpDDbHFRQ-GAkaVKIT2Vxt9sWl3tzcljF56vodq-7xO83jx4JyZcZ33t_pR3nymV2QhLFkaCA0gOxpj5pb5f-gKJtsc7xFLGut2MBB7Mfc4Zoiz3K1HAMY9coJXTxy_7qFbCUFzNrNonZ82H9erlX-1x16m-w_eUanMSBt2NbggFEuihWdOXeyk9sYfZ3JERCz2VOltMrHCSSPzPezs_Ug-wSvZKdyIk2SIrv9r9Xi2wEj_XdAqGucj0LTdo',
-              fit: BoxFit.cover,
-            ),
+            child: Image.asset("assets/plant_image.png", fit: BoxFit.cover),
           ),
 
           // gradient overlay
           Positioned.fill(
-              bottom: 24,
             child: Container(
+              height: double.infinity,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -74,27 +88,52 @@ class _PlantHomeScreenState extends State<PlantHomeScreen> {
                 ),
               ),
             ),
-          
           ),
-         
+
           SafeArea(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 14.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                   Center(child: Text("Simple Set Alarm",style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold,fontSize: 18),)),
-                   SizedBox(height: 15,),
-                  Container(
-                    width: double.infinity,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadiusGeometry.circular(12),
-                      color: Colors.green,
+                  Center(
+                    child: Text(
+                      "Simple Set Alarm",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadiusGeometry.circular(12),
-                      child: Image.network(imageUrl, fit: BoxFit.cover),
+                  ),
+                  SizedBox(height: 15),
+                  GestureDetector(
+                    onTap: () => getImageFromCamera(),
+                    child: Container(
+                      width: double.infinity,
+                      height: 200,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadiusGeometry.circular(12),
+                        color: Colors.transparent,
+                        border: cameraImage == null ?  Border.all(color: Colors.green, width: 2.0) : null
+                      ),
+                      child: cameraImage == null
+                          ? Center(
+                              child: Text(
+                                "Tap to Take image of your Plant",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            )
+                          : ClipRRect(
+                              borderRadius: BorderRadiusGeometry.circular(12),
+                              child: Image.file(
+                                File(cameraImage!.path),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                     ),
                   ),
                   SizedBox(height: 15),
