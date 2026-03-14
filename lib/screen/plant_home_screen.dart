@@ -5,6 +5,8 @@ import 'package:alarm/alarm.dart';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:plant_sip/helper/shared_preference_class.dart';
+import 'package:plant_sip/helper/snack_bar_message.dart';
 import 'package:plant_sip/screen/alarm_edit_screen.dart';
 import 'package:plant_sip/widget/custom_button.dart';
 
@@ -55,13 +57,25 @@ class _PlantHomeScreenState extends State<PlantHomeScreen> {
     if (image != null) {
       setState(() {
         cameraImage = File(image.path);
+        SPHelper.sp.save("plantImage", cameraImage!.path);
       });
-
-      print("Imagei is picked ${image.path} $cameraImage ");
     } else {
-      print("Image is Not Picked");
+      snackBarMessage(
+        context: context,
+        message: "No Camera Picture is Taken",
+        backgroundColor: Colors.red,
+      );
     }
   }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    cameraImage = File(SPHelper.sp.get("plantImage").toString());
+  }
+
+  void saveAlarmDataLocal() {}
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +129,9 @@ class _PlantHomeScreenState extends State<PlantHomeScreen> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadiusGeometry.circular(12),
                         color: Colors.transparent,
-                        border: cameraImage == null ?  Border.all(color: Colors.green, width: 2.0) : null
+                        border: cameraImage == null
+                            ? Border.all(color: Colors.green, width: 2.0)
+                            : null,
                       ),
                       child: cameraImage == null
                           ? Center(

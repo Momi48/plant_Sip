@@ -1,10 +1,12 @@
 import 'package:alarm/alarm.dart';
 import 'package:flutter/material.dart';
+import 'package:plant_sip/helper/shared_preference_class.dart';
 import 'package:plant_sip/screen/plant_home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Alarm.init();
+  await SPHelper.sp.initSharedPreferences();
   runApp(const MyApp());
 }
 
