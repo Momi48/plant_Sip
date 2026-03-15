@@ -1,6 +1,7 @@
 import 'package:alarm/alarm.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:plant_sip/helper/shared_preference_class.dart';
 import 'package:plant_sip/widget/custom_button.dart';
 
 class AlarmEditScreen extends StatefulWidget {
@@ -134,18 +135,24 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     return alarmSettings;
   }
 
-  void timeFormatin24Format() {
-    var formatter = DateFormat('dd-MM-yyyy');
-    String formattedTime = DateFormat('kk:mm:a').format(selectedDateTime);
-    String formattedDate = formatter.format(selectedDateTime);
-    print(formattedTime);
-    print(formattedDate);
+  String timeFormatin24Format() {
+    var formatter = DateTime.now();
+
+    String formattedTime = DateFormat('h:mm a').format(formatter);
+
+    return formattedTime;
   }
 
   void saveAlarm() {
     if (loading) return;
     setState(() => loading = true);
-    timeFormatin24Format();
+
+    String selectedTimeForPlants = DateFormat(
+      'h:mm a',
+    ).format(selectedDateTime);
+    if (selectedTimeForPlants == timeFormatin24Format()) {
+      SPHelper.sp.delete("plantImage");
+    }
     Alarm.set(alarmSettings: buildAlarmSettings()).then((res) {
       if (res && mounted) Navigator.pop(context, true);
       setState(() => loading = false);
@@ -313,7 +320,12 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
             ),
 
             CustomButton(
-              onTap: () => Navigator.pop(context, false),
+              onTap: () {
+                setState(() {});
+
+                Navigator.pop(context, false);
+              },
+
               title: "Cancel",
             ),
             SizedBox(height: 5),
