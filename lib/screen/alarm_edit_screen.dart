@@ -1,5 +1,6 @@
 import 'package:alarm/alarm.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:plant_sip/widget/custom_button.dart';
 
 class AlarmEditScreen extends StatefulWidget {
@@ -81,6 +82,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
           millisecond: 0,
           microsecond: 0,
         );
+
         if (selectedDateTime.isBefore(now)) {
           selectedDateTime = selectedDateTime.add(const Duration(days: 1));
         }
@@ -132,9 +134,18 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     return alarmSettings;
   }
 
+  void timeFormatin24Format() {
+    var formatter = DateFormat('dd-MM-yyyy');
+    String formattedTime = DateFormat('kk:mm:a').format(selectedDateTime);
+    String formattedDate = formatter.format(selectedDateTime);
+    print(formattedTime);
+    print(formattedDate);
+  }
+
   void saveAlarm() {
     if (loading) return;
     setState(() => loading = true);
+    timeFormatin24Format();
     Alarm.set(alarmSettings: buildAlarmSettings()).then((res) {
       if (res && mounted) Navigator.pop(context, true);
       setState(() => loading = false);
@@ -144,7 +155,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:  EdgeInsets.symmetric(vertical: 10, horizontal: 30),
+      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 30),
       child: SingleChildScrollView(
         scrollDirection: Axis.vertical,
         child: Column(

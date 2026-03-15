@@ -56,8 +56,9 @@ class _PlantHomeScreenState extends State<PlantHomeScreen> {
     final image = await picker.pickImage(source: ImageSource.camera);
     if (image != null) {
       setState(() {
-        cameraImage = File(image.path);
-        SPHelper.sp.save("plantImage", cameraImage!.path);
+        final saveCameraImage = image;
+
+        SPHelper.sp.save("plantImage", saveCameraImage.path);
       });
     } else {
       snackBarMessage(
@@ -70,9 +71,11 @@ class _PlantHomeScreenState extends State<PlantHomeScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    cameraImage = File(SPHelper.sp.get("plantImage").toString());
+    if (cameraImage != null) {
+      cameraImage = File(SPHelper.sp.get("plantImage").toString());
+      print("Camera $cameraImage");
+    }
   }
 
   void saveAlarmDataLocal() {}
@@ -146,7 +149,7 @@ class _PlantHomeScreenState extends State<PlantHomeScreen> {
                           : ClipRRect(
                               borderRadius: BorderRadiusGeometry.circular(12),
                               child: Image.file(
-                                File(cameraImage!.path),
+                                cameraImage!,
                                 fit: BoxFit.cover,
                               ),
                             ),
@@ -164,8 +167,10 @@ class _PlantHomeScreenState extends State<PlantHomeScreen> {
                   SizedBox(height: 20),
                   CustomButton(
                     onTap: () {
-                      setState(() {});
-                      navigateToAlarmScreen(alarmSettings);
+                      setState(() {
+                        navigateToAlarmScreen(alarmSettings);
+                        print("Settings of Alarm are ${alarmSettings.dateTime}");
+                      });
                     },
                     title: "Set your Alarm",
                   ),
