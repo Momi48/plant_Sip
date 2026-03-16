@@ -5,10 +5,12 @@ import 'package:alarm/alarm.dart';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:plant_sip/helper/global_varaibles.dart';
 import 'package:plant_sip/helper/shared_preference_class.dart';
 import 'package:plant_sip/helper/snack_bar_message.dart';
 import 'package:plant_sip/screen/alarm_edit_screen.dart';
 import 'package:plant_sip/widget/custom_button.dart';
+import 'package:plant_sip/widget/show_alarm_time.dart';
 
 final ImagePicker picker = ImagePicker();
 
@@ -20,6 +22,8 @@ class PlantHomeScreen extends StatefulWidget {
 }
 
 class _PlantHomeScreenState extends State<PlantHomeScreen> {
+  TextEditingController plantController = TextEditingController();
+  final formKey = GlobalKey<FormState>();
   DateTime now = DateTime.now().copyWith(
     hour: 0,
     minute: 0,
@@ -56,9 +60,9 @@ class _PlantHomeScreenState extends State<PlantHomeScreen> {
     final image = await picker.pickImage(source: ImageSource.camera);
     if (image != null) {
       setState(() {
-        final saveCameraImage = image;
+        cameraImage = File(image.path);
 
-        SPHelper.sp.save("plantImage", saveCameraImage.path);
+        SPHelper.sp.save("plantImage", cameraImage!.path);
       });
     } else {
       snackBarMessage(
@@ -72,10 +76,17 @@ class _PlantHomeScreenState extends State<PlantHomeScreen> {
   @override
   void initState() {
     super.initState();
-    if (cameraImage != null) {
-      cameraImage = File(SPHelper.sp.get("plantImage").toString());
-      print("Camera $cameraImage");
-    }
+    cameraImage = File(SPHelper.sp.get("plantImage").toString());
+    plantController.addListener(() {
+      setState(() {});
+    });
+  //  SPHelper.sp.delete("alarmTime");
+    SPHelper.sp.delete("plantImage");
+    SPHelper.sp.delete("AlarmName");
+    selectedPlantAlarm = SPHelper.sp.get("alarmTime");
+    print("plantImage: ${SPHelper.sp.get("plantImage")}");
+    print("Alarm Name: ${SPHelper.sp.get("AlarmName")}");
+    print("alarmTime: ${SPHelper.sp.get("alarmTime")}");
   }
 
   void saveAlarmDataLocal() {}
@@ -83,110 +94,129 @@ class _PlantHomeScreenState extends State<PlantHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       extendBodyBehindAppBar: true,
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Image.asset("assets/plant_image.png", fit: BoxFit.cover),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/plant_image.png"),
+            fit: BoxFit.cover,
           ),
-
-          // gradient overlay
-          Positioned.fill(
-            child: Container(
-              height: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Color.fromRGBO(25, 16, 34, 0.6),
-                    Color.fromRGBO(25, 16, 34, 0.6),
+        ),
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color.fromRGBO(25, 16, 34, 0.6),
+                Color.fromRGBO(25, 16, 34, 0.6),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+          child: SafeArea(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(horizontal: 15.0),
+              child: Form(
+                key: formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Text(
+                        "Simple Set Alarm",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 15),
+                    GestureDetector(
+                      onTap: () => getImageFromCamera(),
+                      child: Container(
+                        width: double.infinity,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadiusGeometry.circular(12),
+                          color: Colors.transparent,
+                          border: SPHelper.sp.get("plantImage") == null
+                              ? Border.all(color: Colors.green, width: 2.0)
+                              : null,
+                        ),
+                        child: SPHelper.sp.get("plantImage") == null
+                            ? Center(
+                                child: Text(
+                                  "Tap to Take image of your Plant",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              )
+                            : ClipRRect(
+                                borderRadius: BorderRadiusGeometry.circular(12),
+                                child: Image.file(
+                                  cameraImage!,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                      ),
+                    ),
+                    SizedBox(height: 15),
+                    Text(
+                      "Alarm Name",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 5),
+                    TextFormField(
+                      controller: plantController,
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return "This Field is Required";
+                        }
+                        return null;
+                      },
+                      style: TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 15),
+                    plantController.text.isNotEmpty &&
+                            SPHelper.sp.get("plantImage") != null
+                        ? CustomButton(
+                            onTap: () {
+                              setState(() {
+                                navigateToAlarmScreen(alarmSettings);
+                              });
+                            },
+                            title: "Set your Alarm",
+                          )
+                        : Container(),
+                    SizedBox(height: 10),
+                    SPHelper.sp.get("alarmTime") == null
+                        ? Container()
+                        : ShowAlarmTime(),
                   ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
                 ),
               ),
             ),
           ),
-
-          SafeArea(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 14.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Text(
-                      "Simple Set Alarm",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 15),
-                  GestureDetector(
-                    onTap: () => getImageFromCamera(),
-                    child: Container(
-                      width: double.infinity,
-                      height: 200,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadiusGeometry.circular(12),
-                        color: Colors.transparent,
-                        border: cameraImage == null
-                            ? Border.all(color: Colors.green, width: 2.0)
-                            : null,
-                      ),
-                      child: cameraImage == null
-                          ? Center(
-                              child: Text(
-                                "Tap to Take image of your Plant",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            )
-                          : ClipRRect(
-                              borderRadius: BorderRadiusGeometry.circular(12),
-                              child: Image.file(
-                                cameraImage!,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                    ),
-                  ),
-                  SizedBox(height: 15),
-                  Text(
-                    "Time",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  CustomButton(
-                    onTap: () {
-                      setState(() {
-                        navigateToAlarmScreen(alarmSettings);
-                        print("Settings of Alarm are ${alarmSettings.dateTime}");
-                      });
-                    },
-                    title: "Set your Alarm",
-                  ),
-                  SizedBox(height: 15),
-                  CustomButton(onTap: () {}, title: "Save Your Alarm"),
-                ],
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
-  }
-
-  void openTimePicker() async {
-    await Alarm.set(alarmSettings: alarmSettings);
   }
 
   Future<void> navigateToAlarmScreen(AlarmSettings? settings) async {
@@ -197,9 +227,18 @@ class _PlantHomeScreenState extends State<PlantHomeScreen> {
       builder: (context) {
         return FractionallySizedBox(
           heightFactor: 0.85,
-          child: AlarmEditScreen(alarmSettings: settings),
+          child: AlarmEditScreen(
+            alarmSettings: settings,
+            plantAlarmName: plantController.text,
+          ),
         );
       },
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    plantController.dispose();
   }
 }

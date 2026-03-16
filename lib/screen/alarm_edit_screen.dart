@@ -1,14 +1,20 @@
 import 'package:alarm/alarm.dart';
+import 'package:alarm/utils/alarm_set.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:plant_sip/helper/global_varaibles.dart';
 import 'package:plant_sip/helper/shared_preference_class.dart';
 import 'package:plant_sip/widget/custom_button.dart';
 
 class AlarmEditScreen extends StatefulWidget {
-  const AlarmEditScreen({super.key, this.alarmSettings});
+  const AlarmEditScreen({
+    super.key,
+    this.alarmSettings,
+    required this.plantAlarmName,
+  });
 
   final AlarmSettings? alarmSettings;
-
+  final String plantAlarmName;
   @override
   State<AlarmEditScreen> createState() => _AlarmEditScreenState();
 }
@@ -48,6 +54,16 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
       staircaseFade = widget.alarmSettings!.volumeSettings.fadeSteps.isNotEmpty;
       assetAudio = widget.alarmSettings!.assetAudioPath;
     }
+    Alarm.ringing.listen((AlarmSet alarmSet) {
+      for (final alarm in alarmSet.alarms) {
+        // yourOnRingCallback
+        String time = DateFormat("h:mm a").format(alarm.dateTime);
+        if (time == selectedPlantAlarm) {
+          print("Hello is this working");
+          SPHelper.sp.delete("alarmTime");
+        }
+      }
+    });
   }
 
   String getDay() {
@@ -125,9 +141,10 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
       volumeSettings: volumeSettings,
       allowAlarmOverlap: true,
       notificationSettings: NotificationSettings(
-        title: 'Alarm example',
-        body: 'Your alarm ($id) is ringing',
-        stopButton: 'Stop the alarm',
+        title: 'Time to Water Your ${widget.plantAlarmName} Plant 💧',
+        body:
+            'Your plant ${widget.plantAlarmName} is thirsty! Tap to mark as watered.',
+        stopButton: 'Plant Watered',
         icon: 'notification_icon',
         keepNotificationAfterAlarmEnds: true,
       ),
@@ -147,12 +164,10 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     if (loading) return;
     setState(() => loading = true);
 
-    String selectedTimeForPlants = DateFormat(
-      'h:mm a',
-    ).format(selectedDateTime);
-    if (selectedTimeForPlants == timeFormatin24Format()) {
-      SPHelper.sp.delete("plantImage");
-    }
+    selectedPlantAlarm = DateFormat("h:mm a").format(selectedDateTime);
+    SPHelper.sp.save("AlarmName", widget.plantAlarmName);
+    SPHelper.sp.save("alarmTime", selectedPlantAlarm!);
+
     Alarm.set(alarmSettings: buildAlarmSettings()).then((res) {
       if (res && mounted) Navigator.pop(context, true);
       setState(() => loading = false);
@@ -219,23 +234,23 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                   items: const [
                     DropdownMenuItem<String?>(child: Text('Default')),
                     DropdownMenuItem<String?>(
-                      value: 'assets/marimba.mp3',
+                      value: 'assets/sounds/marimba.mp3',
                       child: Text('Marimba'),
                     ),
                     DropdownMenuItem<String?>(
-                      value: 'assets/nokia.mp3',
+                      value: 'assets/sounds/nokia.mp3',
                       child: Text('Nokia'),
                     ),
                     DropdownMenuItem<String?>(
-                      value: 'assets/mozart.mp3',
+                      value: 'assets/sounds/mozart.mp3',
                       child: Text('Mozart'),
                     ),
                     DropdownMenuItem<String?>(
-                      value: 'assets/star_wars.mp3',
+                      value: 'assets/sounds/star_wars.mp3',
                       child: Text('Star Wars'),
                     ),
                     DropdownMenuItem<String?>(
-                      value: 'assets/one_piece.mp3',
+                      value: 'assets/sounds/one_piece.mp3',
                       child: Text('One Piece'),
                     ),
                   ],
