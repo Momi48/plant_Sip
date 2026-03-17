@@ -55,14 +55,30 @@ class _PlantHomeScreenState extends State<PlantHomeScreen> {
   String imageUrl =
       "https://imgs.search.brave.com/POSiM5I-qipFSRImCXHDR9qvDHa9wUtuvrQSIsrV8xg/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnJl/ZGQuaXQvbWJudG9r/c3hnaXRmMS5qcGVn";
   File? cameraImage;
+  void getImageFromGallery() async {
+    // Pick an image.
+    final image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        cameraImage = File(image.path);
+
+        SPHelper.sp.save("plantImage", cameraImage!.path);
+      });
+    } else {
+      snackBarMessage(
+        context: context,
+        message: "No Camera Picture is Taken",
+        backgroundColor: Colors.red,
+      );
+    }
+  }
+
   void getImageFromCamera() async {
     // Pick an image.
     final image = await picker.pickImage(source: ImageSource.camera);
     if (image != null) {
       setState(() {
         cameraImage = File(image.path);
-
-        SPHelper.sp.save("plantImage", cameraImage!.path);
       });
     } else {
       snackBarMessage(
@@ -80,9 +96,7 @@ class _PlantHomeScreenState extends State<PlantHomeScreen> {
     plantController.addListener(() {
       setState(() {});
     });
-  //  SPHelper.sp.delete("alarmTime");
-    SPHelper.sp.delete("plantImage");
-    SPHelper.sp.delete("AlarmName");
+
     selectedPlantAlarm = SPHelper.sp.get("alarmTime");
     print("plantImage: ${SPHelper.sp.get("plantImage")}");
     print("Alarm Name: ${SPHelper.sp.get("AlarmName")}");
@@ -138,7 +152,7 @@ class _PlantHomeScreenState extends State<PlantHomeScreen> {
                     ),
                     SizedBox(height: 15),
                     GestureDetector(
-                      onTap: () => getImageFromCamera(),
+                      onTap: () => getImageFromGallery(),
                       child: Container(
                         width: double.infinity,
                         height: 200,
@@ -152,7 +166,7 @@ class _PlantHomeScreenState extends State<PlantHomeScreen> {
                         child: SPHelper.sp.get("plantImage") == null
                             ? Center(
                                 child: Text(
-                                  "Tap to Take image of your Plant",
+                                  "Upload Image of your Plant",
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
@@ -215,6 +229,12 @@ class _PlantHomeScreenState extends State<PlantHomeScreen> {
             ),
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () =>
+            SPHelper.sp.get("plantImage") == null ? getImageFromCamera() : null,
+        backgroundColor: Colors.green,
+        child: Icon(Icons.camera_alt, color: Colors.white),
       ),
     );
   }

@@ -61,6 +61,8 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
         if (time == selectedPlantAlarm) {
           print("Hello is this working");
           SPHelper.sp.delete("alarmTime");
+          SPHelper.sp.delete("plantImage");
+          SPHelper.sp.delete("AlarmName");
         }
       }
     });
